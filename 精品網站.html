@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xinlong</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(180deg, #000 70%, #1a0000 100%);
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+    }
+    .nav-link {
+      color: #ff4d4d;
+      transition: color 0.3s ease;
+    }
+    .nav-link:hover {
+      color: #ff1e2d;
+    }
+    .btn-red {
+      background-color: #e50914;
+      border: 2px solid #ff4d4d;
+      transition: all 0.3s ease;
+    }
+    .btn-red:hover {
+      background-color: #ff1e2d;
+      transform: scale(1.05);
+      box-shadow: 0 0 15px #e50914;
+    }
+    h1 {
+      color: #ff4d4d;
+    }
+    .logo-text {
+      font-size: 28px;
+      font-weight: bold;
+      color: #ff4d4d;
+      font-family: "UnifrakturCook", cursive;
+    }
+    .image-grid {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .product {
+      background: #1a1a1a;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ff4d4d;
+      text-align: center;
+    }
+    .product img {
+      width: 100%;
+      border-radius: 6px;
+    }
+    .product p {
+      margin: 5px 0;
+    }
+    .active {
+      display: grid;
+    }
+    #cartModal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #111;
+      padding: 20px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      border: 2px solid #ff4d4d;
+      z-index: 1000;
+    }
+    #cartModal table {
+      width: 100%;
+      margin-top: 10px;
+    }
+    #cartModal th, #cartModal td {
+      padding: 8px;
+      text-align: center;
+    }
+    #overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 999;
+    }
+    header {
+      padding: 20px;
+      font-size: 32px;
+      font-weight: bold;
+      color: #ff4d4d;
+      text-shadow: 0 0 15px #ff0000;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center text-center">
+
+  <!-- 導覽列 -->
+  <nav class="w-full flex justify-between px-8 py-4 text-lg border-b border-red-900 items-center">
+    <header>𝔁𝓲𝓷𝓵𝓸𝓷𝓰𝓶𝓸𝓽𝓸𝓻</header>
+    <div class="space-x-6">
+      <button onclick="showCart()" class="btn-red px-4 py-2 rounded-full">檢視購物車</button>
+    </div>
+  </nav>
+
+  <!-- 首頁內容 -->
+  <div class="flex flex-col items-center justify-center mt-20">
+    <h1 class="text-5xl font-extrabold mb-6">鑫龍車業有限公司</h1>
+    <p class="text-xl text-gray-300 mb-8">本精品網皆是不含工資 顏色部分選購完成<br>私訊LINE:@969zopiu 抖音/IG:@xinlongmotor</p>
+    
+    <!-- 四個選項 -->
+    <div class="flex gap-6 mb-6">
+      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('jet')">JET</button>
+      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('mmbcu')">MMBCU</button>
+      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('drg')">DRG</button>
+      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('common')">通用</button>
+    </div>
+
+    <!-- 圖案顯示區 -->
+    <div id="jet" class="image-grid"></div>
+    <div id="mmbcu" class="image-grid"></div>
+    <div id="drg" class="image-grid"></div>
+    <div id="common" class="image-grid"></div>
+  </div>
+
+  <!-- 購物車彈窗 -->
+  <div id="overlay" onclick="closeCart()"></div>
+  <div id="cartModal">
+    <h2 class="text-2xl mb-4 text-red-400">購物車</h2>
+    <table border="1" class="border-collapse border-red-400 text-white">
+      <thead>
+        <tr>
+          <th>商品</th>
+          <th>價格</th>
+          <th>刪除</th>
+        </tr>
+      </thead>
+      <tbody id="cartItems"></tbody>
+    </table>
+    <p class="mt-4 text-lg">總金額：<span id="totalPrice">0</span> 元</p>
+    <div class="flex justify-center gap-4 mt-4">
+      <button onclick="printBill()" class="btn-red px-4 py-2 rounded-full">列印單據</button>
+      <button onclick="closeCart()" class="btn-red px-4 py-2 rounded-full">關閉</button>
+    </div>
+  </div>
+
+  <script>
+    // 商品資料，改這裡即可自訂圖片 / 名稱 / 價格
+    const products = {
+      jet: [
+        {name: "SYM JET SL/SL+ 戰神大燈組", price: 5500, img: "images/jet1.png"},
+        {name: "APLX戰神大燈總成－璀璨版", price: 11550, img: "images/jet2.png"},
+        {name: "JETS/SR/SL-小戰神前方向燈 璀璨版", price: 3780, img: "images/jet3.png"},
+        {name: "JETS/SR/SL-小戰神前方向燈 白燈", price: 2850, img: "images/jet4.png"},
+        {name: "JETS Z刃日行燈模組", price: 2835, img: "images/jet5.png"},
+        {name: "JET M7", price: 3980, img: "images/jet6.png"},
+        {name: "LP PRO尾燈", price: 3650, img: "images/jet7.png"},
+        {name: "LP plus尾燈", price: 2780, img: "images/jet8.png"},
+        {name: "星爵大燈套件", price: 6000, img: "images/jet9.png"},
+      ],
+      mmbcu: [
+        {name: "AJ單眼頭燈", price: 3800, img: "images/mmbcu1.png"},
+        {name: "AJ尾燈", price: 3500, img: "images/mmbcu2.png"},
+        {name: "AJ MB日行燈", price: 4200, img: "images/mmbcu3.png"},
+        {name: "MMBCU APLX 立體式頭燈", price: 4930, img: "images/mmbcu4.png"},
+        {name: "MMBCU SE款頭燈", price: 4800, img: "images/mmbcu5.png"},
+        {name: "曼巴 MMBCU LED頭燈 大燈套件 GX2 類BMW光圈", price: 7300, img: "images/mmbcu6.png"},
+        {name: "APEXX 鷹眼霧燈", price: 3980, img: "images/mmbcu7.png"},
+        {name: "AJ霧燈空力套件", price: 4200, img: "images/mmbcu8.png"},
+        {name: "MBC 晶鑽日行燈", price: 3150, img: "images/mmbcu9.png"}
+      ],
+      drg: [
+        {name: "魔龍日行燈", price: 5300, img: "images/drg1.png"},
+        {name: "魔龍日行燈+魔龍 APL MINI魔瞳套件", price: 9300, img: "images/drg2.png"},
+        {name: "魔龍日行燈+魔龍 APL MINI夜巡套件", price: 12000, img: "images/drg3.png"},
+        {name: "LD2 日行燈", price: 4500, img: "images/drg4.png"},
+        {name: "LD2 尾燈", price: 4100, img: "images/drg5.png"},
+        {name: "星爵大牛尾燈", price: 3300, img: "images/drg6.png"},
+        {name: "AJ 尾燈", price: 3950, img: "images/drg7.png"},
+        {name: "金鑫跑格尾燈", price: 4200, img: "images/drg8.png"},
+        {name: "AJ 惡魔眼大燈", price: 4100, img: "images/drg9.png"}
+      ],
+      common: [
+        {name: "通用手機架", price: 800, img: "images/common1.png"},
+        {name: "通用車牌框", price: 400, img: "images/common2.png"},
+        {name: "apexx 握把套(黑/白)", price: 800, img: "images/common3.png"},
+        {name: "apexx 拉桿(黑/白)", price: 1850, img: "images/common4.png"},
+        {name: "白鐵中柱芯", price: 800, img: "images/common5.png"},
+        {name: "AMA SR700", price: 5000, img: "images/common6.png"},
+        {name: "AMA SR800", price: 6000, img: "images/common7.png"},
+        {name: "Spedal CL873", price: 9000, img: "images/common8.png"},
+        {name: "Ghost 水箱護罩", price: 1380, img: "images/common9.png"},
+        {name: "傑諾水箱護網(銀/黑)", price: 430, img: "images/common10.png"},
+        {name: "傑諾水箱護網(鈦)", price: 630, img: "images/common11.png"}
+      ]
+    };
+
+    const cart = [];
+
+    function showGrid(id) {
+      document.querySelectorAll('.image-grid').forEach(grid => grid.classList.remove('active'));
+      const grid = document.getElementById(id);
+      grid.innerHTML = '';
+      products[id].forEach((p, index) => {
+        grid.innerHTML += `
+          <div class="product">
+            <img src="${p.img}" alt="${p.name}">
+            <p>${p.name}</p>
+            <p>${p.price} 元</p>
+            <button onclick="addToCart('${p.name}', ${p.price})" class="btn-red px-4 py-2 rounded-full mt-2">加入購物車</button>
+          </div>`;
+      });
+      grid.classList.add('active');
+    }
+
+    function addToCart(name, price) {
+      cart.push({name, price});
+      alert(`${name} 已加入購物車！`);
+    }
+
+    function showCart() {
+      const cartItems = document.getElementById('cartItems');
+      cartItems.innerHTML = '';
+      let total = 0;
+      cart.forEach((item, index) => {
+        total += item.price;
+        cartItems.innerHTML += `
+          <tr>
+            <td>${item.name}</td>
+            <td>${item.price}</td>
+            <td><button onclick="removeItem(${index})" class="text-red-400">刪除</button></td>
+          </tr>`;
+      });
+      document.getElementById('totalPrice').innerText = total;
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('cartModal').style.display = 'block';
+    }
+
+    function closeCart() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('cartModal').style.display = 'none';
+    }
+
+    function removeItem(index) {
+      cart.splice(index, 1);
+      showCart();
+    }
+
+    function printBill() {
+      let bill = '=== 購物單據 ===\n';
+      cart.forEach(item => {
+        bill += `${item.name} - ${item.price} 元\n`;
+      });
+      bill += `總金額：${document.getElementById('totalPrice').innerText} 元\n`;
+      const win = window.open('', '', 'width=400,height=600');
+      win.document.write(`<pre>${bill}</pre>`);
+      win.print();
+    }
+  </script>
+</body>
+</html>
