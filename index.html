@@ -6,48 +6,56 @@
   <title>Xinlong</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    html, body { width: 100%; overflow-x: hidden; }
     body {
       background: linear-gradient(180deg, #000 70%, #1a0000 100%);
       color: #fff;
       font-family: 'Poppins', sans-serif;
     }
-    .nav-link {
-      color: #ff4d4d;
-      transition: color 0.3s ease;
-    }
-    .nav-link:hover {
-      color: #ff1e2d;
-    }
+    h1 { color: #ff4d4d; }
+
+    .nav-link { color: #ff4d4d; transition: color 0.3s ease; }
+    .nav-link:hover { color: #ff1e2d; }
+
     .btn-red {
       background-color: #e50914;
       border: 2px solid #ff4d4d;
       transition: all 0.3s ease;
+      white-space: nowrap; /* 讓按鈕文字不換行更穩定 */
     }
     .btn-red:hover {
       background-color: #ff1e2d;
       transform: scale(1.05);
       box-shadow: 0 0 15px #e50914;
     }
-    h1 {
+
+    header {
+      padding: 12px 0;
+      font-size: 28px;
+      font-weight: bold;
       color: #ff4d4d;
+      text-shadow: 0 0 15px #ff0000;
+      line-height: 1.1;
+      word-break: break-word;
     }
+
     .logo-text {
       font-size: 28px;
       font-weight: bold;
       color: #ff4d4d;
       font-family: "UnifrakturCook", cursive;
     }
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-  gap: 15px;
-}
 
-.image-grid img {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
+    /* 圖牆：預設設為 3 欄，在小螢幕會自動降到 2 欄 / 1 欄 */
+    .image-grid {
+      display: none;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+      width: 100%;
+    }
+    .active { display: grid; }
+
     .product {
       background: #1a1a1a;
       padding: 10px;
@@ -56,15 +64,17 @@
       text-align: center;
     }
     .product img {
+      display: block;
       width: 100%;
+      height: auto;       /* 保持比例 */
       border-radius: 6px;
     }
     .product p {
       margin: 5px 0;
+      word-break: break-word; /* 商品名稱太長時自動換行 */
     }
-    .active {
-      display: grid;
-    }
+
+    /* 購物車彈窗 */
     #cartModal {
       display: none;
       position: fixed;
@@ -79,62 +89,74 @@
       border: 2px solid #ff4d4d;
       z-index: 1000;
     }
-    #cartModal table {
-      width: 100%;
-      margin-top: 10px;
-    }
-    #cartModal th, #cartModal td {
-      padding: 8px;
-      text-align: center;
-    }
+    #cartModal table { width: 100%; margin-top: 10px; table-layout: fixed; }
+    #cartModal th, #cartModal td { padding: 8px; text-align: center; word-break: break-word; }
+
     #overlay {
       display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      position: fixed; inset: 0;
       background: rgba(0, 0, 0, 0.7);
       z-index: 999;
     }
-    header {
-      padding: 20px;
-      font-size: 32px;
-      font-weight: bold;
-      color: #ff4d4d;
-      text-shadow: 0 0 15px #ff0000;
+
+    /* ======== 手機斷點優化 ======== */
+    @media (max-width: 640px) {
+      header { font-size: 22px; }
+      h1 { font-size: 26px; }
+      .image-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .product { padding: 8px; }
+      .btn-red { padding: 8px 12px; font-size: 14px; }
+      .top-buttons { flex-wrap: wrap; gap: 10px; }  /* 允許按鈕自動換行 */
+      .nav-row { flex-wrap: wrap; gap: 10px; }     /* 導覽列允許換行 */
+      .page-wrap { padding-left: 12px; padding-right: 12px; }
+    }
+
+    /* 超小螢幕（例如 360px 寬）降到單欄避免擠爆 */
+    @media (max-width: 380px) {
+      .image-grid { grid-template-columns: 1fr; }
+    }
+
+    /* 大螢幕時，拉回三欄或更多 */
+    @media (min-width: 768px) {
+      .image-grid { grid-template-columns: repeat(3, 1fr); }
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center text-center">
+<body class="min-h-screen flex flex-col">
 
   <!-- 導覽列 -->
-  <nav class="w-full flex justify-between px-8 py-4 text-lg border-b border-red-900 items-center">
-    <header>𝔁𝓲𝓷𝓵𝓸𝓷𝓰𝓶𝓸𝓽𝓸𝓻</header>
-    <div class="space-x-6">
-      <button onclick="showCart()" class="btn-red px-4 py-2 rounded-full">檢視購物車</button>
+  <nav class="w-full border-b border-red-900">
+    <div class="nav-row max-w-screen-lg mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between py-3">
+      <header>𝔁𝓲𝓷𝓵𝓸𝓷𝓰𝓶𝓸𝓽𝓸𝓻</header>
+      <div class="flex items-center gap-4">
+        <button onclick="showCart()" class="btn-red px-4 py-2 rounded-full">檢視購物車</button>
+      </div>
     </div>
   </nav>
 
   <!-- 首頁內容 -->
-  <div class="flex flex-col items-center justify-center mt-20">
-    <h1 class="text-5xl font-extrabold mb-6">鑫龍車業有限公司</h1>
-    <p class="text-xl text-gray-300 mb-8">本精品網皆是不含工資 顏色部分選購完成<br>私訊LINE:@969zopiu 抖音/IG:@xinlongmotor</p>
-    
-    <!-- 四個選項 -->
-    <div class="flex gap-6 mb-6">
-      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('jet')">JET</button>
-      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('mmbcu')">MMBCU</button>
-      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('drg')">DRG</button>
-      <button class="btn-red text-white px-8 py-3 rounded-full text-lg font-semibold" onclick="showGrid('common')">通用</button>
-    </div>
+  <main class="page-wrap w-full">
+    <div class="max-w-screen-lg mx-auto flex flex-col items-center justify-center mt-10 sm:mt-16 text-center">
+      <h1 class="font-extrabold mb-4 text-3xl sm:text-5xl">鑫龍車業有限公司</h1>
+      <p class="text-gray-300 mb-6 sm:mb-8 text-base sm:text-xl">
+        本精品網皆是不含工資 顏色部分選購完成<br>私訊LINE:@969zopiu 抖音/IG:@xinlongmotor
+      </p>
 
-    <!-- 圖案顯示區 -->
-    <div id="jet" class="image-grid"></div>
-    <div id="mmbcu" class="image-grid"></div>
-    <div id="drg" class="image-grid"></div>
-    <div id="common" class="image-grid"></div>
-  </div>
+      <!-- 四個選項 -->
+      <div class="top-buttons flex justify-center gap-3 sm:gap-6 mb-6">
+        <button class="btn-red text-white px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-semibold" onclick="showGrid('jet')">JET</button>
+        <button class="btn-red text-white px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-semibold" onclick="showGrid('mmbcu')">MMBCU</button>
+        <button class="btn-red text-white px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-semibold" onclick="showGrid('drg')">DRG</button>
+        <button class="btn-red text-white px-6 sm:px-8 py-3 rounded-full text-base sm:text-lg font-semibold" onclick="showGrid('common')">通用</button>
+      </div>
+
+      <!-- 圖案顯示區（保持原本 id） -->
+      <div id="jet" class="image-grid"></div>
+      <div id="mmbcu" class="image-grid"></div>
+      <div id="drg" class="image-grid"></div>
+      <div id="common" class="image-grid"></div>
+    </div>
+  </main>
 
   <!-- 購物車彈窗 -->
   <div id="overlay" onclick="closeCart()"></div>
@@ -158,7 +180,7 @@
   </div>
 
   <script>
-    // 商品資料，改這裡即可自訂圖片 / 名稱 / 價格
+    // 商品資料
     const products = {
       jet: [
         {name: "SYM JET SL/SL+ 戰神大燈組", price: 5500, img: "images/jet1.png"},
@@ -214,7 +236,7 @@
       document.querySelectorAll('.image-grid').forEach(grid => grid.classList.remove('active'));
       const grid = document.getElementById(id);
       grid.innerHTML = '';
-      products[id].forEach((p, index) => {
+      products[id].forEach((p) => {
         grid.innerHTML += `
           <div class="product">
             <img src="${p.img}" alt="${p.name}">
@@ -224,6 +246,8 @@
           </div>`;
       });
       grid.classList.add('active');
+      // 捲到圖牆（手機上更直覺）
+      grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function addToCart(name, price) {
@@ -261,9 +285,7 @@
 
     function printBill() {
       let bill = '=== 購物單據 ===\n';
-      cart.forEach(item => {
-        bill += `${item.name} - ${item.price} 元\n`;
-      });
+      cart.forEach(item => { bill += `${item.name} - ${item.price} 元\n`; });
       bill += `總金額：${document.getElementById('totalPrice').innerText} 元\n`;
       const win = window.open('', '', 'width=400,height=600');
       win.document.write(`<pre>${bill}</pre>`);
